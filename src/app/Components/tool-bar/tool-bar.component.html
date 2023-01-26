@@ -1,0 +1,16 @@
+<div class="tool-bar">
+    <button (click)="addQ($event)" style="margin-top: 10%;">Add Q</button>
+    <button (click)="addM($event)"> Add M</button>
+    <button style="display: flex; flex-direction: row;" (click)="addP($event)">
+        <div class="text" >Add P</div>
+        <div class="num">{{productsNum}}</div>
+    </button>
+    <button (click)="line($event)" id="line">Line</button>
+    <button (click)="run($event)">Run</button>
+    <button (click)="replay($event)">Replay</button>
+    <button (click)="clear($event)">Clear</button>
+</div>
+
+<div class="stage" id="board">
+
+</div>
