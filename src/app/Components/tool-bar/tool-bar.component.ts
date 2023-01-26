@@ -11,7 +11,7 @@ export class ToolBarComponent implements OnInit {
   constructor() { }
 
   stage : any;
-  layer : any;
+  layer : any ;
   machineNumber : number = 1;
   queueNumber : number = 1;
   drawLine : boolean = false;
