@@ -6,6 +6,7 @@ import { AppComponent } from './app.component';
 import { ToolBarComponent } from './Components/tool-bar/tool-bar.component';
 import { HttpClientModule } from '@angular/common/http';
 import { KonvaModule } from 'ng2-konva';
+import {StompService} from "./stomp.service";
 
 @NgModule({
   declarations: [
@@ -18,7 +19,7 @@ import { KonvaModule } from 'ng2-konva';
     HttpClientModule,
     KonvaModule
   ],
-  providers: [],
+  providers: [StompService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -19,8 +19,12 @@
     "@angular/platform-browser-dynamic": "^14.2.0",
     "@angular/router": "^14.2.0",
     "konva": "^8.4.2",
+    "net": "^1.0.2",
     "ng2-konva": "^6.0.0",
+    "ng2-stomp-service": "^1.2.2",
     "rxjs": "~7.5.0",
+    "sockjs-client": "^1.6.1",
+    "stompjs": "^2.3.3",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
   },
