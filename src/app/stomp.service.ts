@@ -13,12 +13,22 @@ export class StompService {
   socket = new SockJS('http://localhost:8080/sba-websocket');
   stompClient = Stomp.over(this.socket);
 
-  subscribe(topic: string): any {
-    this.stompClient.connect({}, (frame: string) => {
-      console.log('Connected: ' + frame);
-      this.stompClient.subscribe('/topic/prod-cons', (greeting : any) => {
-        return greeting.body;
-      });
+
+  subscribe(topic: string, callback: any): void {
+    const connected: boolean = this.stompClient.connected;
+    if (connected) {
+      this.subscribeToTopic(topic, callback);
+      return;
+    }
+
+    this.stompClient.connect({}, (): any => {
+      this.subscribeToTopic(topic, callback);
+    });
+  }
+
+  private subscribeToTopic(topic: string, callback: any): void {
+    this.stompClient.subscribe(topic, (response?:string): any => {
+      callback(response);
     });
   }
 

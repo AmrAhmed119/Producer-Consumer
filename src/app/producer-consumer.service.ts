@@ -12,38 +12,41 @@ export class ProducerConsumerService {
   }
 
   public addMachine() {
-    this.http.post(URL + "addMachine", {}).subscribe();
+    this.http.post(this.URL + "addMachine", {}).subscribe();
   }
 
   public addQueue() {
-    this.http.post(URL + "addQueue", {}).subscribe();
+    this.http.post(this.URL + "addQueue", {}).subscribe();
   }
 
   public addProduct() {
-    this.http.post(URL + "addProduct", {}).subscribe();
+    this.http.post(this.URL + "addProduct", {}).subscribe();
   }
 
   public connectMachineToQueue(machineId: string, queueId: string) {
-    return this.http.post(URL + "connectMtoQ", {
+    return this.http.post(this.URL + "connectMtoQ", {
       "machine_id": machineId,
       "queue_id": queueId
     });
   }
 
   public connectQueueToMachine(machineId: string, queueId: string) {
-    return this.http.post(URL + "connectQtoM", {
+    return this.http.post(this.URL + "connectQtoM", {
       "machine_id": machineId,
       "queue_id": queueId
     });
   }
 
-
   public start() {
-    this.http.post(URL + "start", {}).subscribe();
+    this.http.post(this.URL + "start", {}).subscribe();
   }
 
   public replay() {
-    this.http.post(URL + "replay", {}).subscribe();
+    this.http.post(this.URL + "replay", {}).subscribe();
+  }
+
+  public clear(){
+    this.http.post(this.URL + "clear" , {}).subscribe();
   }
 
 }

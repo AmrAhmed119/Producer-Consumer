@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {Konva} from "konva/cmj/_FullInternals";
+import {ProducerConsumerService} from "../../producer-consumer.service";
+import {StompService} from "../../stomp.service";
 
 @Component({
   selector: 'app-tool-bar',
@@ -8,22 +10,37 @@ import {Konva} from "konva/cmj/_FullInternals";
 })
 export class ToolBarComponent implements OnInit {
 
-  constructor() { }
+  constructor(private producerConsumerService: ProducerConsumerService,
+              private stompService: StompService) {
+  }
 
-  stage : any;
-  layer : any ;
-  machineNumber : number = 1;
-  queueNumber : number = 1;
-  drawLine : boolean = false;
-  shape1 : any;
-  shape2 : any;
-  productsNum : number = 0;
-
+  stage: any;
+  layer: any;
+  machineNumber: number = 1;
+  queueNumber: number = 1;
+  drawLine: boolean = false;
+  shape1: any;
+  shape2: any;
+  productsNum: number = 0;
+  workingmachine:any;
+  productcolor:any[]=[];
   // let group = this.stage.findOne('#M1');
   // let circle = group.getChildren()[0];
   // circle.fill("red");
 
   ngOnInit(): void {
+
+    this.stompService.subscribe('/topic/updateQueueSize', (data: any): any => {
+      this.updateQueueSize(data.body);
+    });
+
+    this.stompService.subscribe('/topic/machineRunning' , (data : any): any => {
+      this.machineRunning(data.body);
+    });
+
+    this.stompService.subscribe('/topic/machineFinished' , (data : any): any => {
+      this.machineRunning(data.body);
+    });
 
     let width = window.innerWidth * (80 / 100);
     let height = window.innerHeight * (93 / 100);
@@ -37,69 +54,75 @@ export class ToolBarComponent implements OnInit {
     this.stage.add(this.layer);
 
     this.stage.on("click", (event: any) => {
-      if(!this.drawLine) {
+      if (!this.drawLine) {
         return;
       }
-      if(this.shape1 == null) {
+      if (this.shape1 == null) {
         this.shape1 = event.target;
         this.shape1 = this.shape1.getParent().getChildren()[0];
-      }
-      else {
+      } else {
         this.shape2 = event.target;
         this.shape2 = this.shape2.getParent().getChildren()[0];
         this.drawLine = false;
-        this.connect(this.shape1,this.shape2);
+        this.connect(this.shape1, this.shape2);
         return;
       }
     });
-    
+
 
   }
 
-  addQ(event : any) {
+  addQ(event: any) {
 
     this.layer.add(this.newQueue()).batchDraw();
+    this.producerConsumerService.addQueue();
 
   }
 
-  addM(event : any) {
+  addM(event: any) {
 
     this.layer.add(this.newMachine()).batchDraw();
+    this.producerConsumerService.addMachine();
 
   }
 
-  line(event : any) {
+  line(event: any) {
 
     this.drawLine = true;
-    
+
+
   }
 
-  connect(shape1 : any, shape2 : any) {
+  connect(shape1: any, shape2: any) {
+
 
     let x1 = shape1.getParent().attrs.x, x2 = shape2.getParent().attrs.x;
     let y1 = shape1.getParent().attrs.y, y2 = shape2.getParent().attrs.y;
     let type1 = shape1.getParent().attrs.name;
     let type2 = shape2.getParent().attrs.name;
 
-    let a,b,c,d;
+    let a, b, c, d;
 
-    if(type1 === "Rect" && type2 === "Circle") {
+    if (type1 === "Rect" && type2 === "Circle") {
+
+      this.producerConsumerService.connectQueueToMachine(shape2.id(), shape1.id());
+
 
       a = x1 + shape1.getParent().attrs.width;
       b = y1 + shape1.getParent().attrs.height / 2;
       c = x2 - shape2.getParent().attrs.width;
       d = y2;
 
-    }
-    else if(type2 === "Rect" && type1 === "Circle") {
+    } else if (type2 === "Rect" && type1 === "Circle") {
+
+      this.producerConsumerService.connectMachineToQueue(shape1.id(), shape2.id());
 
       a = x1 + shape1.getParent().attrs.width - 2;
       b = y1;
       c = x2;
       d = y2 + 26;
 
-    }
-    else {
+    } else {
 
       this.shape1 = null;
       this.shape2 = null;
@@ -126,8 +149,8 @@ export class ToolBarComponent implements OnInit {
   newQueue() {
 
     let group = new Konva.Group({
-      x: 100, 
-      y: 300, 
+      x: 100,
+      y: 300,
       width: 60,
       height: 60,
       draggable: true,
@@ -143,7 +166,7 @@ export class ToolBarComponent implements OnInit {
     });
 
     let text = new Konva.Text({
-      text:'Q' + this.queueNumber.toString(),
+      text: 'Q' + this.queueNumber.toString(),
       fontSize: 30,
       fontFamily: 'Calibri',
       fill: 'black',
@@ -169,14 +192,14 @@ export class ToolBarComponent implements OnInit {
       id: "M" + this.machineNumber.toString(),
       name: "Circle"
     });
-    
+
     let circle = new Konva.Circle({
       fill: "#7ac13e",
       radius: 33,
     });
 
     let text = new Konva.Text({
-      text:'M' + this.machineNumber.toString(),
+      text: 'M' + this.machineNumber.toString(),
       fontSize: 27,
       fontFamily: 'Tahoma',
       fill: 'black',
@@ -191,7 +214,7 @@ export class ToolBarComponent implements OnInit {
     return group;
   }
 
-  clear(event : any) {
+  clear(event: any) {
 
     this.layer.removeChildren();
     this.productsNum = 0;
@@ -201,16 +224,49 @@ export class ToolBarComponent implements OnInit {
     this.shape1 = null;
     this.shape2 = null;
 
+    this.producerConsumerService.clear();
+
   }
 
-  addP(event : any) {
+  addP(event: any) {
     this.productsNum++;
+    this.producerConsumerService.addProduct();
   }
 
-  run(event : any) {
+  run(event: any) {
+    this.producerConsumerService.start();
   }
-  
-  replay(event : any) {
+
+  replay(event: any) {
+    this.producerConsumerService.replay();
+  }
+
+
+  updateQueueSize(data: any) {
+    let id = data.id
+    let size = data.size
+
+    // update queue size
+  }
+
+  machineRunning(data: any) {
+    console.log(data);
+    let id = data.id;
+    this.productcolor = data.color;
+    let shape=this.layer.find(`#${id}`)[0];
+    this.workingmachine=shape;
+    setInterval(this.flash,1000)
+  }
+
+  machineFinished(data: any) {
+    let id = data.id;
+
+    // return machine to default color
+  }
+
+
+  flash(){
+
   }
 
 }
