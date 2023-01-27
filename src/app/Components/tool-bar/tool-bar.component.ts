@@ -24,13 +24,19 @@ export class ToolBarComponent implements OnInit {
   productsNum: number = 0;
   workingmachine:any;
   productcolor:any[]=[];
+  interval:any;
+
   // let group = this.stage.findOne('#M1');
   // let circle = group.getChildren()[0];
   // circle.fill("red");
 
   ngOnInit(): void {
 
-    this.stompService.subscribe('/topic/updateQueueSize', (data: any): any => {
+    this.stompService.subscribe('/topic/notify', (data: any): any => {
+      this.chooseOperation(data.body)
+    });
+
+    /*this.stompService.subscribe('/topic/updateQueueSize', (data: any): any => {
       this.updateQueueSize(data.body);
     });
 
@@ -41,7 +47,7 @@ export class ToolBarComponent implements OnInit {
     this.stompService.subscribe('/topic/machineFinished' , (data : any): any => {
       this.machineRunning(data.body);
     });
-
+*/
     let width = window.innerWidth * (80 / 100);
     let height = window.innerHeight * (93 / 100);
     this.stage = new Konva.Stage({
@@ -100,12 +106,15 @@ export class ToolBarComponent implements OnInit {
     let y1 = shape1.getParent().attrs.y, y2 = shape2.getParent().attrs.y;
     let type1 = shape1.getParent().attrs.name;
     let type2 = shape2.getParent().attrs.name;
-
+    let id1 = shape1.getParent().id(), id2 = shape2.getParent().id();
     let a, b, c, d;
 
     if (type1 === "Rect" && type2 === "Circle") {
 
-      this.producerConsumerService.connectQueueToMachine(shape2.id(), shape1.id());
+      console.log(shape2.getParent().id());
+      console.log(shape1.getParent().id());
+
+      this.producerConsumerService.connectQueueToMachine(id2, id1);
 
 
       a = x1 + shape1.getParent().attrs.width;
@@ -115,7 +124,7 @@ export class ToolBarComponent implements OnInit {
 
     } else if (type2 === "Rect" && type1 === "Circle") {
 
-      this.producerConsumerService.connectMachineToQueue(shape1.id(), shape2.id());
+      this.producerConsumerService.connectMachineToQueue(id1, id2);
 
       a = x1 + shape1.getParent().attrs.width - 2;
       b = y1;
@@ -241,11 +250,16 @@ export class ToolBarComponent implements OnInit {
     this.producerConsumerService.replay();
   }
 
-
   updateQueueSize(data: any) {
-    let id = data.id
-    let size = data.size
+    console.log(data)
+    let id : string = data.id
+    let size : string = data.size
 
+    console.log(id);
+    console.log(size);
+    let group = this.stage.findOne('#' + id.toString());
+    let shape = group.getChildren()[1];
+    shape.text(size);
     // update queue size
   }
 
@@ -253,20 +267,37 @@ export class ToolBarComponent implements OnInit {
     console.log(data);
     let id = data.id;
     this.productcolor = data.color;
-    let shape=this.layer.find(`#${id}`)[0];
-    this.workingmachine=shape;
-    setInterval(this.flash,1000)
+    let g=this.stage.findOne(`#${id}`);
+    this.workingmachine = g.children[0];
+    console.log("al machine ehaaaaaaaaaaaaaaaaaaaaaa");
+    console.log(this.workingmachine);
+    this.interval=setInterval(this.flash,1000)
   }
 
   machineFinished(data: any) {
     let id = data.id;
-
+    clearInterval(this.interval);
+    this.workingmachine.fill("#7ac13e");
     // return machine to default color
   }
 
-
   flash(){
-
+    console.log("Before Flash");
+    console.log(this.workingmachine);
+    if(this.workingmachine.fill() === "#7ac13e"){
+      this.workingmachine.fill(`rgb(${this.productcolor[0]},${this.productcolor[1]},${this.productcolor[2]})`);
+      console.log("After Flash");
+      console.log(this.workingmachine);
+    }
+    else{
+      this.workingmachine.fill("#7ac13e");
+    }
   }
 
+  private chooseOperation(data : any) {
+    let ob = JSON.parse(data);
+    if (ob["operation"] === "updateQueueSize") this.updateQueueSize(ob);
+    else if (ob["operation"] === "machineRunning") this.machineRunning(ob);
+    else this.machineFinished(ob);
+  }
 }
