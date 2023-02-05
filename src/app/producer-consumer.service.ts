@@ -6,7 +6,7 @@ import {HttpClient} from "@angular/common/http";
 })
 export class ProducerConsumerService {
 
-  private URL: string = "http://localhost:8080/api/producer_consumer/";
+  private URL: string = "http://localhost:9090/api/producer_consumer/";
 
   constructor(private http: HttpClient) {
   }
@@ -39,6 +39,12 @@ export class ProducerConsumerService {
 
   public start() {
     this.http.post(this.URL + "start", {}).subscribe();
+  }
+
+  public pause(id : string) {
+    this.http.post(this.URL + "pause", {
+      "queue_id": id,
+    }).subscribe();
   }
 
   public replay() {

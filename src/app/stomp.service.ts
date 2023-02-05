@@ -10,7 +10,7 @@ export class StompService {
 
   constructor() {}
 
-  socket = new SockJS('http://localhost:8080/sba-websocket');
+  socket = new SockJS('http://localhost:9090/sba-websocket');
   stompClient = Stomp.over(this.socket);
 
 
